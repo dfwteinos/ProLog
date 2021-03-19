@@ -48,6 +48,14 @@ popFirst(L1,L2,X):-
     firstElement(L1,X),
     delete(X, L1, L2).
 
+/* This works only for single lists
+del_first([],[],[]).
+del_first( [[X|L]|R], [X|RX], [L|RL]):- 
+    del_first(R,RX,RL).*/
+ 
+del_first([X|T], L2, X):-
+    L2 = T.
+
 /* Checks if 2 lists have the same length */
 lengthSimilarity([],[]). 
 lengthSimilarity(L1 , L2):-
@@ -120,7 +128,8 @@ diagsUP([],DU,[H|T],Diags):-
 
 diagsUP(M,DU,L,Diags):-
 
-    popFirst(M,M2,SubList),
+    /*popFirst(M,M2,SubList),*/
+    del_first(M,M2,SubList),
 
     append(L,[SubList],L2),
 
