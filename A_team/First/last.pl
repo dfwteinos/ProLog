@@ -1,1 +1,0 @@
-lastElement(L,X):- append(_, [X], L).
