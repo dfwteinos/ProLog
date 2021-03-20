@@ -95,6 +95,7 @@ reverseLists([H|T],L):-
 
 diagsUP(M, DU, [[]|T], Diags):-
     M \=[],
+    T \=[],
     diagsUP(M, DU, T, Diags).
 
 diagsUP(M,DU, [[]], Diags):-
@@ -108,7 +109,6 @@ diagsUP([], DU, [[]], Diags):-
 
 diagsUP([], DU, L , Diags):-
 
-    writeln(L),
     L \= [[]],
     createDiags(L,D),
     reverse(D,DR),
@@ -129,6 +129,7 @@ diagsUP([],DU,[H|T],Diags):-
 diagsUP(M,DU,L,Diags):-
 
     /*popFirst(M,M2,SubList),*/
+
     del_first(M,M2,SubList),
 
     append(L,[SubList],L2),
@@ -137,19 +138,13 @@ diagsUP(M,DU,L,Diags):-
     reverse(D,DR),
 
     deleteAll(DR,L2,[],F),  
-    
+
     append(Diags,[DR],DU_),
+
     diagsUP(M2,DU,F,DU_).
 
 /* Our main "function" */
 diags(M,DU,DD):-
-
-    /* If we want to check if the input is OK , uncomment these lines  
-    
-    moreThanOne(M),    
-    isMatrix(M),
-
-    */
 
     diagsUP(M,DU,[],[]),
     reverse(M,DDR),
