@@ -61,6 +61,12 @@ zao(M,N,Zeros,AccMatr,Value):-
 
 /*================================*/
 
+/* Deletes the first item from a list */
+del_first([], [], []).
+del_first([[X|L]|R], [X|RX], [L|RL]) :-
+   del_first(R, RX, RL).
+
+
 /* Function to transpose bigger matrices (and not vectors), NxM to MxN */
 
 matr_transp(M, []) :-
