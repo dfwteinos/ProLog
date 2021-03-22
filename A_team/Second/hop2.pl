@@ -73,6 +73,7 @@ empty_lists([]).
 empty_lists([[]|M]) :-
    empty_lists(M).
 
+
 /* Function to multiply matrices */
 
 matr_mult(M1, M2, M3) :-
@@ -173,7 +174,7 @@ hop_first([], H1, AccMatr):-
 
 hop_first([H|T],H1,AccMatr):-
 
-    matr_transpose(H,H_T),
+    matr_transpose(H,H_T),     
     /* Y^T */  
     matr_mult(H_T,[H], M),
     /* (Y^T) * (Y) */ 
