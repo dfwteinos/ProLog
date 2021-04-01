@@ -49,14 +49,22 @@ proper_refill(T1, K , TStable, T_):-
     K_ is K - 1,
     proper_refill(T1, K_, TStable, T_).
 
+/* Function to play all the possible combinations of games for each variable */
+/* If a game has negative pleasure, then play it only one time*/
+member2(X , _, P):-
+    P < 0,
+    X = 1.
+
+member2(X, Chips, P):-
+    P >= 0,
+    member(X, Chips).
 
 /* This function will return all the possible,legal games that can be played */
 solution(Chips, T, K, Variables, P, Pleasure):-
+    solution(Chips, T, K, Variables, P, [], Pleasure, T, Pleasure).
 
-    solution(Chips, T, K, Variables, P, [], Pleasure, T).
 
-
-solution(_, _, K, [], P, Sol_, Pleasure, TStable):-
+solution(_, _, K, [], P, Sol_, Pleasure, TStable, _):-
 
     /* We must play ALL the chips in a combination of games. Eitherwise, our solution is not even the optimal */
 
@@ -65,10 +73,10 @@ solution(_, _, K, [], P, Sol_, Pleasure, TStable):-
     Sum =< TStable + (M-1)*K,
     inn_prod(Sol_, Pleasure, P).
 
-solution(Chips, T, K, [X|X_], P, SolAcc, Pleasure, TStable):-
+solution(Chips, T, K, [X|X_], P, SolAcc, Pleasure, TStable, [P1|P2]):-
 
     /* X_i variable will be played Chips_j times| i = {1,2,...,L} , j={1,2,...,T} */
-    delete(X, Chips, _),
+    member2(X, Chips, P1),
 
     /* Refill the bucket and check if the constraints are valid */
     refill(X, T, K, T1, TStable),
@@ -77,7 +85,7 @@ solution(Chips, T, K, [X|X_], P, SolAcc, Pleasure, TStable):-
     append(SolAcc, [X], Sol_),
 
     /* Try all the possible combinations */
-    solution(Chips, T1, K, X_, P, Sol_, Pleasure, TStable).
+    solution(Chips, T1, K, X_, P, Sol_, Pleasure, TStable, P2).
 
 
 games(Ps, T, K, Gs, P):-
@@ -103,6 +111,7 @@ games(Ps, T, K, Gs, P):-
 
 
 /* A function to seperate the 2 sublists from the findall list */
+/* I don't need it anymore, but i'll let it to exist peacefully for future implementations */
 seperator(L, Times, Pleasure):-
     seperator(L, Times, Pleasure, [], []).
 
