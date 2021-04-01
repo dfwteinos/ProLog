@@ -1,6 +1,3 @@
-/* Load the ic library from ECLiPSe */
-:- lib(ic).
-
 /* Inner product between two matrices */
 inn_prod([], [], 0).
 inn_prod([X1|R1], [X2|R2], IP1) :-
@@ -8,7 +5,6 @@ inn_prod([X1|R1], [X2|R2], IP1) :-
    IP1 is IP2 + X1 * X2.
 
 /* Creates a list from 1 to N */
-
 do_list(N, L):- 
     N > 0,
     findall(Num, between(1, N, Num), L).
@@ -28,42 +24,23 @@ sum_list([H|T], Sum) :-
    Sum is H + Rest.
 
 /* Function to "Refill" our bucket with K chips */
-
 refill(X, T, K, T_, TStable):-
 
-    writeln('In refill:'),
-    writeln('X IN REFILL IS:'),
-    writeln(X),
-    writeln('And T in refill is:'),
-    writeln(T),
     /* We can't play a game more times than the the number of the available chips */
     T1 is T - X,
     T1 >= 0, 
-    writeln('T1 is:'),
-    writeln(T1),
 
     /* We can't let our bucket T be overflowed with more chips than T */
     T2 is T1 + K,
-    writeln('T2 is:'),
-    writeln(T2),
     T2 =< TStable,
-    writeln('New T is:'),
-    writeln(T2),
 
     /* If these constraints are valid, then continue the process */
     T_ = T2.
 
 
 /* This function will return all the possible,legal games that can be played */
-
 solution(Chips, T, K, Variables, P, Pleasure):-
-    writeln('ti ston poutso???'),
 
-    writeln(Chips),
-    writeln(T),
-    writeln(K),
-    writeln(Variables),
-    writeln(Pleasure),
     solution(Chips, T, K, Variables, P, [], Pleasure, T).
 
 
@@ -71,40 +48,23 @@ solution(_, _, K, [], P, Sol_, Pleasure, TStable):-
 
     /* We must play ALL the chips in a combination of games. Eitherwise, our solution is not even the optimal */
     
-    writeln('Sol2'),
-    writeln('One solution is:'),
-    writeln(Sol_),
     length(Sol_, M),
     sum_list(Sol_,Sum),
-    writeln('Sum is:'),
-    writeln(Sum),
-    writeln('Optimal is:'),
-    writeln(TStable + (M-1)*K),
-    Sum =:= TStable + (M-1)*K,
-    writeln('Sum equals to opt_sum'),
+    /*Sum =:= TStable + (M-1)*K,*/
+    Sum =< TStable + (M-1)*K,
 
-    /*Sol = Sol_,*/
     inn_prod(Sol_, Pleasure, P).
 
 solution(Chips, T, K, [X|X_], P, SolAcc, Pleasure, TStable):-
 
-    writeln('Sol1'),
-
     /* X_i variable will be played Chips_j times| i = {1,2,...,L} , j={1,2,...,T} */
     delete(X, Chips, _),
-    writeln('X is:'),
-    writeln(X),
-    writeln('T is:'),
-    writeln(T),
 
     /* Refill the bucket and check if the constraints are valid */
     refill(X, T, K, T1, TStable),
-    writeln('T1 is:'),
-    writeln(T1),
 
     /* Create the matrix with the possible games that can be played */
     append(SolAcc, [X], Sol_),
-    writeln(Sol_),
 
     /* Try all the possible combinations */
     solution(Chips, T1, K, X_, P, Sol_, Pleasure, TStable).
@@ -128,30 +88,9 @@ games(Ps, T, K, Gs, P):-
     /* Found the max of a given list */
     findmax(M, MaxA),
     P = MaxA,
-    writeln('Max is:'),
-    writeln(P),
 
     /* Return recursively all the solutions, one by one */
     member(p(Gs,P), M).
-
-
-    /*findall( [Gs,P2] , solution(Ps2, T2, K2, Gs, P2), L),
-
-    seperator(L, Times, Pleasure),
-
-    maxlist2(Pleasure, M),
-
-    maxPT(Pleasure, Times, FinalPleasure, FinalTimes, M),
-
-    delete(Gs2,FinalTimes, _),
-
-    P2 = M,
-    
-    writeln(FinalPleasure),
-    writeln(FinalTimes).
-    /*Find_Max_Pleasure(L, Ps2),
-    writeln(L).*/
-
 
 
 /* A function to seperate the 2 sublists from the findall list */
