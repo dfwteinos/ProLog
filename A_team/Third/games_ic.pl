@@ -7,12 +7,14 @@ inn_prod([X1|R1], [X2|R2], IP1) :-
    inn_prod(R1, R2, IP2),
    IP1 is IP2 + X1 * X2.
 
-
 /* Second constraint */
-
-secondC(Gs,T,K):-
-
-    sec_con(Gs,Gs,T,K).
+secondCR(Gs,T,K):-
+    
+    reverse(Gs,GsR),
+    writeln(GsR),
+    sec_con(GsR,GsR,T,K),
+    reverse(GsR,GsR_),
+    Gs = GsR_.
 
 sec_con([],[],_,_).
 sec_con(Gs_,[_|Tail], T, K):-
@@ -23,16 +25,7 @@ sec_con(Gs_,[_|Tail], T, K):-
     sum(Gs_) #=<(T+(M-1)*K),
     sec_con(Tail,Tail, T, K).
 
-secondCR(Gs,T,K):-
-    
-    reverse(Gs,GsR),
-    writeln(GsR),
-    sec_con(GsR,GsR,T,K),
-    reverse(GsR,GsR_),
-    Gs = GsR_.
-
 /* Third constraint */
-
 thirdC(Gs,T,K):-
     third_con(Gs,Gs,T,K).
 
@@ -43,7 +36,7 @@ third_con(Gs_,[_|Tail], T, K):-
     sum(Gs_) + K #>T + (M-1) * K,
     sec_con(Tail,Tail, T, K).
 
-games(Ps, T, K, GsR, P):-
+solution(Ps, T, K, GsR, P):-
 
     /* L has the length of the const Ps_1, Ps_2, ... , Ps_n */    
     length(Ps,L),                   
@@ -52,61 +45,37 @@ games(Ps, T, K, GsR, P):-
     length(GsR_, L),
 
     /* First constraint, games(==variables) can be played from 1 up to T times. */
+    GsR_ :: 1..T,
 
     /* Second constraint x_1 + ... + x_n <= T + (i-1)K */
-    
-    GsR_ :: 1..T,
-    writeln(GsR_),
+    /* We can't play a game more times than the available chips everytime */
     secondCR(GsR_,T,K),
+
+    /* Third constraint x_1 + ... + x_n > T + (i-1)K */
+    /* We can't exceed each time the max number of T chips */
     thirdC(GsR_,T,K),
+
+    /* We must apply our constraint in linear order */
     GsR = GsR_,
-    writeln(GsR),
-
-    /* Third constraint x_1 + ... + x_n > T + (i-1)K 
-    thirdC(GsR,T,K),*
-
-    /*third_con(GsR,GsR, T, K),*/
-
-    /* First constraint, variables must be equal to the sum of total chips 
-    sum(Gs) #= T + (L-1) * K,
-    /* Second constraint, we can't play a single game more times than our max chips (T) 
-    Gs :: 1..T,
-    /* Third constraint, we can't overfill the bucket T with chips > T. 
-    chipsT(Gs,K),*/
 
     /* Search for all the solutions, based on the upper constraints */
     search(GsR, 0, input_order, indomain, complete, []),
 
-    writeln(GsR),
-
+    /* We must find the pleasure for each combination of games */
     inn_prod(GsR, Ps, P).
 
 
-games2(Ps2, T2, K2, Gs2, P2):-
+games(Ps, T, K, Gs, P):-
 
-    writeln('gucci'),
-    findall( [Gs,P2] , games(Ps2, T2, K2, Gs, P2), L),
-    
-    writeln('mane'),
+    /* Find all the games according to our constraints */
+    findall( p(Gs2,P2) , solution(Ps, T, K, Gs2, P2), L),
 
-    seperator(L, Times, Pleasure),
-    writeln('wtf_man'),
+    /* Found the max of a given list */
+    findmax(L, MaxA),
+    P = MaxA,
 
-    maxlist2(Pleasure, M),
-    writeln(M),
-
-    maxPT(Pleasure, Times, FinalPleasure, FinalTimes, M),
-
-    delete(Gs2,FinalTimes, _),
-
-    P2 = M,
-    
-    writeln(FinalPleasure),
-    writeln(FinalTimes).
-    /*Find_Max_Pleasure(L, Ps2),
-    writeln(L).*/
-
-
+    /* Return recursively all the solutions, one by one */
+    member(p(Gs,P), L).
 
 /* A function to seperate the 2 sublists from the findall list */
 seperator(L, Times, Pleasure):-
@@ -161,3 +130,13 @@ check(P, Max, AccP, AccT, T, AccP_, AccT_):-
     member(P, [Max]),
     append(AccP, [P], AccP_),
     append(AccT, [T], AccT_).
+
+/* Returns the biggest element from a double list */
+
+findmax( [p(_,A)], A).
+findmax( [p(_,A1)|L], MaxA) :-
+    findmax(L, MaxL),
+    max2(A1, MaxL, MaxA).
+
+max2(X,Y,X) :- X >= Y.
+max2(X,Y,Y) :- X < Y.
