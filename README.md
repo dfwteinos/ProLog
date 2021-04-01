@@ -4,7 +4,7 @@
 
 In this particular team of excercises, I've had to implement 2 introductory type of problems, and one problem of constraints.
 
-### First: ***__diags.pl__***
+### **First**: ***__diags.pl__***
 
 In the first directory of this team, I've implemented a program who takes as input a matrix (which is a list of lists), and it gives us back the Upper and Lower Diagonals of this very Matrix.
 
@@ -25,7 +25,7 @@ i | j | k | l |
 
 `?- diags([[a,b,c,d],[e,f,g,h],[i,j,k,l]],DiagsDown,DiagsUp).`
 
-### Second: ***__hopfield.pl__***
+### **Second**: ***__hopfield.pl__***
 
 In the second directory if this team , the task was to implement the [Hopfield's Formula](https://en.wikipedia.org/wiki/Hopfield_network).
 
@@ -37,7 +37,7 @@ So here, our program takes as input the training vectors, and returns back the "
 
 Answer: `W = [[0,1,-1,3],[1,0,1,1],[-1,1,0,-1],[3,1,-1,0]]`.
 
-### Third: ***__games.pl__***
+### **Third**: ***__games.pl__***
 
 In the third and the most demanding excercise in this team of homeworks, we had to implement a constraint problem.
 
