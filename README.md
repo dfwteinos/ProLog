@@ -71,3 +71,8 @@ Answer: `Gs = [5,1,1,4] and P = 35.`
 `?- games([2,-3,4,1,-2,2,1],8,3,Gs,P).`
 
 Answer: `Gs = [5,1,8,1,1,7,3] and P = 55.`
+
+
+## Further Informations:
+
+*This project is part of the course: Logic Programming , Spring of 2021. University of Athens, DiT.*
