@@ -1,13 +1,32 @@
 /* Load the ic library from ECLiPSe */
 :- lib(ic).
 
+/* Load the branch and bround library from EXLiPSe */
+:- lib(branch_and_bound).
+
 /* Inner product between two matrices */
 inn_prod([], [], 0).
 inn_prod([X1|R1], [X2|R2], IP1) :-
    inn_prod(R1, R2, IP2),
    IP1 is IP2 + X1 * X2.
 
+secondCRR(Gs,T,K):-
+
+    sec_con(Gs,Gs,T,K).
+
 /* Second constraint */
+sec_constr_([], _, _).
+sec_constr_([_|GsT], T, K):-   
+
+    secondCRR(GsT, T, K),
+    sec_constr_(GsT, T, K).
+
+sec_constr([], _, _).
+sec_constr([_|GsT], T, K):-   
+
+    secondCR(GsT, T, K),
+    sec_constr(GsT, T, K).
+
 secondCR(Gs,T,K):-
     
     reverse(Gs,GsR),
@@ -36,6 +55,13 @@ third_con(Gs_,[_|Tail], T, K):-
     sum(Gs_) + K #>T + (M-1) * K,
     sec_con(Tail,Tail, T, K).
 
+/* Cost constraint */
+
+cost_constr([] ,[], 0).
+cost_constr([GsH|GsT], [PsH|PsT], Cost):-
+    cost_constr(GsT, PsT, Cost_),
+    Cost #= Cost_ - GsH * PsH.
+
 solution(Ps, T, K, GsR, P):-
 
     /* L has the length of the const Ps_1, Ps_2, ... , Ps_n */    
@@ -50,22 +76,25 @@ solution(Ps, T, K, GsR, P):-
     /* Second constraint x_1 + ... + x_n <= T + (i-1)K */
     /* We can't play a game more times than the available chips everytime */
     secondCR(GsR_,T,K),
+    sec_constr(GsR_, T, K),
 
-    /* Third constraint x_1 + ... + x_n > T + (i-1)K */
-    /* We can't exceed each time the max number of T chips */
-    thirdC(GsR_,T,K),
+    secondCRR(GsR_,T, K),
+    sec_constr_(GsR_, T, K),
+
+    cost_constr(GsR_, Ps, Cost),
 
     /* We must apply our constraint in linear order */
     GsR = GsR_,
 
     /* Search for all the solutions, based on the upper constraints */
-    search(GsR, 0, input_order, indomain, complete, []),
+    bb_min(search(GsR, 0, first_fail, indomain, complete, []),
+        Cost, bb_options{solutions:all}),
 
     /* We must find the pleasure for each combination of games */
     inn_prod(GsR, Ps, P).
 
 
-games(Ps, T, K, Gs, P):-
+games_csp(Ps, T, K, Gs, P):-
 
     /* Find all the games according to our constraints */
     findall( p(Gs2,P2) , solution(Ps, T, K, Gs2, P2), L),
