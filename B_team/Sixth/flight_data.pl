@@ -72,7 +72,7 @@ read_pairing(Stream, K, [Flight|Pairing]) :-
    K1 is K-1,
    read_pairing(Stream, K1, Pairing).
 
-datafile(7, 'acsdata/acs197x17').
+datafile(7, '/home/dimitris/LogPro/B_team/Sixth/acsdata/acs197x17').
 datafile(8, 'acsdata/acs294x19').
 datafile(9, 'acsdata/acs404x19').
 datafile(10, 'acsdata/acs434x24').

@@ -7,7 +7,7 @@
 /* Load the branch and bround library from EXLiPSe */
 :- lib(branch_and_bound).
 
-run :- member(I,[1, 2]),
+run :- member(I,[1, 2, 3, 4, 5, 6, 7]),
     write('I = '), writeln(I),
     flights(I, Pairings, Cost),
     write('Pairings = '), writeln(Pairings),
@@ -58,14 +58,14 @@ applyBinaryConstraint(_, []).
 applyBinaryConstraint(Vars, [I1 | I2]) :-
 
     get_ith(I1, Vars, Var),
-    Var #:: [0,1],
+    Var #:: 0..1,
     applyBinaryConstraint(Vars, I2).
 
 /* This function will demand that all the combinations must have sum == 1 */
 applySumConstraint(Vars, Indexes) :-
     applySumConstraint(Vars, Indexes, []).
 
-applySumConstraint(Vars, [], VarAcc) :-
+applySumConstraint(_, [], VarAcc) :-
     sum(VarAcc) #= 1.
 applySumConstraint(Vars, [I1 | I2], VarAcc) :-
 
@@ -104,20 +104,20 @@ getIndexes(Pairs, [HC | TC], Indexes, IndexesAcc) :-
 
 
 /* Get the elements of specific indexes, from a given list */
-getVariables(Vars, Indexes, Variables) :-  
-    getVariables(Vars, Indexes, Variables, []).
+getVariables(Varz, Indexez, Variablez) :-  
+    getVariables(Varz, Indexez, Variablez, []).
 
-getVariables(_, [], VariablesAcc, VariablesAcc).
-getVariables(Vars, [HI | TI], Variables, VariablesAcc) :-
+getVariables(_, [], VariablezAcc, VariablezAcc).
+getVariables(Varz, [HI | TI], Variablez, VariablezAcc) :-
 
     /* Get the element of current index */
-    get_ith(HI, Vars, Var),
+    get_ith(HI, Varz, Var),
 
     /* Append this element to Var Accumulator List */
-    append(VariablesAcc, [Var], VariablesAcc_),
+    append(VariablezAcc, [Var], VariablezAcc_),
 
     /* Repeat until there are no items left */
-    getVariables(Pairs, TI, Variables, VariablesAcc_).
+    getVariables(Varz, TI, Variablez, VariablezAcc_).
 
 /* Function to create Cost constraint */
 cost_constr(Vars, Costs, Cost) :-
@@ -153,33 +153,26 @@ getPositiveVariables([V1 | V2], PosVarsIndexes, PosVarsIndexesAcc, Index) :-
 
 /* This function is going to apply our desired constraints */
 /* HF = HeadFlight, TF = TailFlight */
-applyConstraints([], Pairs, Vars, PairLength, Costs) :-
+applyConstraints([], _, Vars, _, Costs, VarIndexes, Cost) :-
 
-    writeln("Applying cost constraint"),
     cost_constr(Vars, Costs, Cost), 
-
-    /* Get only the variables that are equal to 1 */
-    getPositiveVariables(Vars, PosVarsIndexes),
-    write("Pos vars are: "), writeln(PosVarsIndexes), !,
 
     /* Search for all the solutions, based on the upper constraints */
     bb_min(search(Vars, 0, first_fail, indomain, complete, []),
-        Cost, bb_options{solutions:all}),
+        Cost, bb_options{strategy:restart}), !,
 
-    write("Cost is : "), writeln(Cost).
+    getPositiveVariables(Vars, VarIndexes).
 
-
-applyConstraints([HF | TF], Pairs, Vars, PairLength, Costs) :-
+applyConstraints([HF | TF], Pairs, Vars, _, Costs, VarIndexes, Cost) :-
 
     HF \= [],
-    write('HF IS: '), writeln(HF),
     /* For each flight, create a list with all the combinations that has this flight */
     flightList(HF, Pairs, CombList),
-    write("Comb list is: ") ,writeln(CombList),
+
+    write("Comb list is: "), writeln(CombList),
 
     /* Find the index of each item in the list */
     getIndexes(Pairs, CombList, Indexes),
-    write("Indexes are: "), writeln(Indexes),
 
     /* Get the i-th elements from Variable list 
     getVariables(Vars, Indexes, Variables),
@@ -190,7 +183,7 @@ applyConstraints([HF | TF], Pairs, Vars, PairLength, Costs) :-
     /* The sum of the expression in the bigger list, must be 1 */
     applySumConstraint(Vars, Indexes),
 
-    applyConstraints(TF, Pairs, Vars, PairLength, Costs).
+    applyConstraints(TF, Pairs, Vars, _, Costs, VarIndexes, Cost).
 
 /* Function to create Variables */
 createVars(Pairs, Vars, PairLength) :-  
@@ -204,22 +197,19 @@ createVars(Pairs, Vars, PairLength) :-
 /* The function that will do all the work */
 flights(I, Pairings, Cost)  :-   
 
-    writeln("ti ston poutso pali1"),
     /* Flights has the number of flights */
     /* Pairs has the lists of possible pairings */
     /* C has the list of each cost for each pair */
     get_flight_data(I, Flights, Pairs, C),
 
-    /*writeln("ti ston poutso pali2"),*/
     /*Create a list from 1 to Flights */
     do_list(Flights, NumFlights),
 
-    writeln("ti ston poutso pali3"), 
     /* Create Variables, fromo 1 to M */ 
     createVars(Pairs, Vars, PairLength),
 
-    writeln("ti ston poutso pali4"),
     /* Apply constraints */
-    applyConstraints(NumFlights, Pairs, Vars, PairLength, C),
+    applyConstraints(NumFlights, Pairs, Vars, PairLength, C, VarIndexes, Cost),
 
-    writeln("ti ston poutso pali5").
+    /* Get the combinations that they gave us the optimal solution */
+    getVariables(Pairs, VarIndexes, Pairings).
