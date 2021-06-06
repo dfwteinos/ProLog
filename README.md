@@ -72,6 +72,72 @@ Answer: `Gs = [5,1,1,4] and P = 35.`
 
 Answer: `Gs = [5,1,8,1,1,7,3] and P = 55.`
 
+# :b: Team: 
+
+In this group of exercises, we dealt exclusively with the problems of satisfying constraints and minimizing/maximizing objective functions.
+To do this, we've utilized the power of the ic and ic_global's library.
+
+## **Fourth**: ***decode.pl*** 
+
+A two-dimensional black and white image is scanned horizontally, vertically, and
+diagonally (in its descending and ascending diagonals) and is coded
+based on the numbers of black pixels in each row, each column, each descending
+diagonal and any ascending diagonal.
+
+We defined a decode/4 predicate, which accepts as arguments the number of black pixels for:
+
+*   Rows
+*   Columns
+*   Desceding and Asceding diagonals
+
+In order to decode the image.
+
+### Compile & Run:
+
+`?- decode([1,1,10,11,10,1,1],[3,3,3,3,3,3,3,5,5,3,1],
+ [0,0,1,2,3,3,3,4,3,4,3,3,2,4,0,0,0],
+ [0,0,1,2,3,3,3,4,3,4,3,3,2,4,0,0,0]).`
+
+## **Fifth**: ***games_csp.pl***
+
+It's the same exercise as the third in ../A_Team/games.pl.
+
+We just changed the approach of this exercise (we utilized the ic library). 
+
+## **Sixth**: ***flights.pl***
+
+In this exercise, we had to find the best possible combination (this with the minimum cost) of flights.
+
+### Compile & Run:
+
+`?- member(I,[1]),
+ write('I = '), writeln(I),
+ flights(I,Pairings,Cost),
+ write('Pairings = '), writeln(Pairings),
+ nl, fail.`
+
+`Answer: I = 1
+Pairings = [[1, 2, 3, 7] / 10,
+ [5, 8] / 12,
+ [4, 9, 10] / 34,
+ [6] / 34]
+Cost = 90`
+
+## **Seventh**: ***hcvrp.pl***
+
+In this exercise, we solved a heterogeneous capacitated vehicle routing problem.
+
+
+### Compile & Run:
+
+`?- hcvrp(3, 2, 0, Solution, Cost, Time).
+Found a solution with cost 485874
+Found a solution with cost 476394
+Found no solution with cost 0.0 .. 476393.0`
+
+`Answer: Solution = [[3], [2, 1]]
+Cost = 476394
+Time = 0.0`
 
 ## Further Informations:
 
