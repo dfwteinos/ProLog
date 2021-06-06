@@ -11,17 +11,21 @@
 :- lib(branch_and_bound).
 
 /* The (hcvrp/6) accusation */ 
-hcvrp(NCl, NVe, _, _, _, _) :-
+hcvrp(NCl, NVe, Timeout, Solution, Cost, Time) :-
+
+    /* Measure the CPU time */
+    /* Start from here */
+    cputime(T1),
 
     /*Retrieve the number of Clients */
     clients(CL),
-    /*Retrieve the numer of Vehicles */
+    /*Retrieve the number of Vehicles */
     vehicles(VE),
 
     /* Retrieve the first N clients */ 
     getItems(CL, NCl, NClients),
-    /* Add a dummy client in the start of List */
-    addDummyClient(NClients, NClientsT),
+    /* Add a dummy client in the start of List */ 
+    addDummyClient(NClients, NClientsT), 
 
     /* Retrieve the first N capacities of vehicles */
     getItems(VE, NVe, Capacities),
@@ -43,6 +47,8 @@ hcvrp(NCl, NVe, _, _, _, _) :-
     /* From 0 up to NClients */
     varsDomain(FLVariables, NCl),
 
+    /*------- Constraints -------*/
+
     /* First Constraint */
     /* Each client must be server by exactly 1 truck */
     uniqueTruck(FLVariables, NCl),
@@ -57,13 +63,18 @@ hcvrp(NCl, NVe, _, _, _, _) :-
 
     /* Cost of our Solution */
     /* Compute the Cost, that's will be the total distance our trucks have traveled */
-    trucksDistance(Distances, Variables, Cost, []),
+    trucksDistance(FLDistances, Variables, Cost, []),
 
-    writeln(Cost),
-    writeln(Demands),
-    writeln(FLVariables),
-    writeln(Capacities),
-    writeln(Distances).
+    /* Search for all the solutions, based on the upper constraints */ 
+    bb_min(search(Variables, 0, first_fail, indomain, complete, []),
+        Cost, bb_options{timeout: Timeout}), 
+
+    seperateVariables(Variables, Solution),
+
+    /* Compute the total time needed for the program to end */
+    cputime(T2),    
+
+    Time is T2 - T1.
 
 
 /* Get the first N items from a given list L */
@@ -147,6 +158,7 @@ varsDomain(FLVariables, NCl) :-
 uniqueTruck(_, 0).
 uniqueTruck(Clients, NCl) :-
 
+    NCl > 0, 
     occurrences(NCl, Clients, 1),
     NCl_ is NCl - 1,
     uniqueTruck(Clients, NCl_).
@@ -163,7 +175,8 @@ capacityLimit([TruckVars1 | TruckVars2], [C1 | C2], Demands) :-
 capacityTruckLimit([], _, DemandsVarsAcc, C) :-
     sum(DemandsVarsAcc) #< C.
 capacityTruckLimit([V1 | V2], Demands, DemVarsAcc, C) :-
-    element(V1, Demands, D),
+    V_ #= V1 + 1,
+    element(V_, Demands, D),
     append(DemVarsAcc, [D], DemandsVarsAcc_),
     capacityTruckLimit(V2, Demands, DemandsVarsAcc_, C). 
 
@@ -193,25 +206,24 @@ trucksDistance(_, [], Cost, CostList) :-
     Cost #= sum(CostList).
 trucksDistance(Distances, [Vars1 | Vars2], Cost, CostList) :-
 
-    Vars1 \= [],
-    writeln(Vars1),
-    computeDistance(Distances, Vars1, TruckCost, [], 0),
+    length(Vars1, NCl),
+    getHead(Vars1, StorageDist),
+    computeDistance(Distances, Vars1, TruckCost, [], NCl, StorageDist),
     append(CostList, [TruckCost], CostList_),
     trucksDistance(Distances, Vars2, Cost, CostList_).
 
 /* Computes the cost of transpotations for each truck */
-computeDistance(_, [], TruckCost, TruckCostAcc, _) :-
-    TruckCost #= sum(TruckCostAcc).
-computeDistance(Distances, [V1 | V2], TruckCost, TruckCostAcc, Point) :-
+computeDistance(Distances, [_|[]], TruckCost, TruckCostAcc, _, SD) :-
+    I #= (SD + 1),
+    element(I, Distances, FC),
+    TruckCost #= sum(TruckCostAcc) + FC.
+computeDistance(Distances, [V1 | V2], TruckCost, TruckCostAcc, NCl, SD) :-
 
-    V1 \= [],
-    write("V1 is: "),writeln(V1),
-    write("Point is: "),writeln(Point),
-    get_ith(Point, Distances, Dist_i),
-    write("Dist is :"),writeln(Dist_i),
-    element(V1, Dist_i, C1),
+    getHead(V2, Head),
+    I #= V1 * (NCl + 1) + (Head + 1),
+    element(I, Distances, C1),
     append(TruckCostAcc, [C1], TruckCostAcc_),
-    computeDistance(Distances, V2, TruckCost, TruckCostAcc_, V1).
+    computeDistance(Distances, V2, TruckCost, TruckCostAcc_, NCl, SD).
 
 /* Get the i-th element from a list */
 get_ith(0, [X|_], X).
@@ -219,3 +231,20 @@ get_ith(I, [_|L], X) :-
     I > 0,
     I1 is I-1,
     get_ith(I1, L, X).
+
+/* Extract all the zeros from the variable's list */
+seperateVariables(Variables, Solution) :-
+    seperateVariables(Variables, Solution, [], Variables).
+
+seperateVariables([], SolutionAcc, SolutionAcc, _).
+seperateVariables([VS1 | VS2], Solution, SolutionAcc, Vars) :-
+    extractZeros(0, VS1, VS),
+    append(SolutionAcc, [VS], SolutionAcc_),
+    seperateVariables(VS2, Solution, SolutionAcc_, Vars).
+
+/* Extract all the zeros from a given list */
+extractZeros(_, [], []).
+extractZeros(X, [X|Xs], Y) :-
+    extractZeros(X, Xs, Y), !.
+extractZeros(X, [T|Xs], [T|Y]) :-
+    extractZeros(X, Xs, Y).
